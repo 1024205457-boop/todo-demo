@@ -11,11 +11,11 @@ type Todo = {
 // GET /api/todos - 获取所有待办，按创建时间倒序
 export async function GET() {
   try {
-    const todos = await sql<Todo[]>`
+    const todos = (await sql`
       SELECT id, content, completed, created_at
       FROM todos
       ORDER BY created_at DESC
-    `;
+    `) as Todo[];
 
     return NextResponse.json(todos, { status: 200 });
   } catch (error) {
@@ -40,11 +40,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const inserted = await sql<Todo[]>`
+    const inserted = (await sql`
       INSERT INTO todos (content, completed)
       VALUES (${content}, false)
       RETURNING id, content, completed, created_at
-    `;
+    `) as Todo[];
 
     return NextResponse.json(inserted[0], { status: 201 });
   } catch (error) {
@@ -70,12 +70,12 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const updated = await sql<Todo[]>`
+    const updated = (await sql`
       UPDATE todos
       SET completed = ${completed}
       WHERE id = ${id}
       RETURNING id, content, completed, created_at
-    `;
+    `) as Todo[];
 
     if (updated.length === 0) {
       return NextResponse.json(
